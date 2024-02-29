@@ -7,6 +7,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// CSRFModel defines model for CSRFModel.
+type CSRFModel struct {
+	Csrf string `json:"csrf"`
+}
+
 // DefaultResponseModel defines model for DefaultResponseModel.
 type DefaultResponseModel struct {
 	Message string `json:"message"`
@@ -15,8 +20,11 @@ type DefaultResponseModel struct {
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
-	// (GET /)
-	Get(ctx echo.Context) error
+	// (GET /api)
+	GetApi(ctx echo.Context) error
+
+	// (GET /api/auth/csrf)
+	GetCsrfToken(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -24,12 +32,21 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// Get converts echo context to params.
-func (w *ServerInterfaceWrapper) Get(ctx echo.Context) error {
+// GetApi converts echo context to params.
+func (w *ServerInterfaceWrapper) GetApi(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.Get(ctx)
+	err = w.Handler.GetApi(ctx)
+	return err
+}
+
+// GetCsrfToken converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCsrfToken(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCsrfToken(ctx)
 	return err
 }
 
@@ -61,6 +78,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/", wrapper.Get)
+	router.GET(baseURL+"/api", wrapper.GetApi)
+	router.GET(baseURL+"/api/auth/csrf", wrapper.GetCsrfToken)
 
 }

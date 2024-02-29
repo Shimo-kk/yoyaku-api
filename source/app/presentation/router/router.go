@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	"os"
+	"yoyaku/app/presentation/controller"
 	appmiddleware "yoyaku/app/presentation/middleware"
 	"yoyaku/app/service/schema"
 
@@ -14,11 +15,7 @@ import (
 )
 
 func IncludeRouter(e *echo.Echo, db *gorm.DB, logger *zap.Logger) {
-	e.GET("/", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, schema.DefaultResponseModel{
-			Message: "Hello, world!",
-		})
-	})
+	authController := controller.NewAuthController()
 
 	// apiグループ
 	api := e.Group("/api")
@@ -51,6 +48,16 @@ func IncludeRouter(e *echo.Echo, db *gorm.DB, logger *zap.Logger) {
 
 	// トランザクションミドルウェアの設定
 	api.Use(appmiddleware.Transaction(db))
+
+	// default
+	api.GET("", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, schema.DefaultResponseModel{
+			Message: "Hello, world!",
+		})
+	})
+
+	// 認証関連
+	api.GET("/auth/csrf", authController.GetCsrfToken)
 
 	// v1グループ
 	v1 := api.Group("/v1")
