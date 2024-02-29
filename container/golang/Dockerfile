@@ -9,7 +9,7 @@ WORKDIR /source
 
 # パッケージのインストール
 RUN apk update && \
-    apk --no-cache add git gcc && \
+    apk --no-cache add git gcc musl-dev && \
     apk add bash && \
     go install -v golang.org/x/tools/gopls@latest && \
     go install github.com/cosmtrek/air@latest && \
